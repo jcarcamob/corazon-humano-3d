@@ -1,0 +1,1117 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Corazón humano 3D — ciclo cardíaco, arritmias e infartos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg: radial-gradient(ellipse 80% 70% at 50% 40%, #eef2f3 0%, #d9e0e3 60%, #c8d1d5 100%);
+  --panel: rgba(247,250,251,.84); --line: rgba(29,42,48,.13); --ink:#1d2a30; --mute:#5b6b72;
+  --art:#b3261e; --ven:#2f4a9e; --open:#1f8a6a; --shut:#b3261e; --warn:#b86a00;
+  --ecg:#0e8f80; --pa:#c0392b; --grid: rgba(14,143,128,.10);
+  --btn: rgba(29,42,48,.06); --btn-on:#1d2a30; --btn-on-ink:#f3f6f7;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg: radial-gradient(ellipse 80% 70% at 50% 40%, #1c272d 0%, #10181c 60%, #0a0f12 100%);
+    --panel: rgba(16,24,28,.8); --line: rgba(200,225,230,.12); --ink:#e7eef0; --mute:#93a4ab;
+    --art:#ff6b5e; --ven:#7f9bff; --open:#4fd6a8; --shut:#ff6b5e; --warn:#ffb347;
+    --ecg:#43e6c8; --pa:#ff7b6e; --grid: rgba(67,230,200,.08);
+    --btn: rgba(231,238,240,.07); --btn-on:#e7eef0; --btn-on-ink:#10181c;
+  }
+}
+:root[data-theme="dark"]{
+  --bg: radial-gradient(ellipse 80% 70% at 50% 40%, #1c272d 0%, #10181c 60%, #0a0f12 100%);
+  --panel: rgba(16,24,28,.8); --line: rgba(200,225,230,.12); --ink:#e7eef0; --mute:#93a4ab;
+  --art:#ff6b5e; --ven:#7f9bff; --open:#4fd6a8; --shut:#ff6b5e; --warn:#ffb347;
+  --ecg:#43e6c8; --pa:#ff7b6e; --grid: rgba(67,230,200,.08);
+  --btn: rgba(231,238,240,.07); --btn-on:#e7eef0; --btn-on-ink:#10181c;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:#d9e0e3;background:var(--bg);color:var(--ink);font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
+#app{position:relative;height:100%;overflow:hidden}
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#gl.dragging{cursor:grabbing}
+.panel{background:var(--panel);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:16px}
+#info{position:absolute;top:16px;left:16px;width:min(370px,calc(100% - 32px));padding:16px 18px 14px;max-height:calc(100% - 230px);overflow:auto}
+.eyebrow{font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:0 0 4px}
+#rhTitle{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:27px;line-height:1.12;margin:0 0 8px;letter-spacing:-.01em}
+.desc{font-size:13.5px;line-height:1.55;color:var(--mute);margin:0}
+#infBox{margin-top:14px;border-left:3px solid var(--art);padding:1px 0 1px 12px}
+#infBox[hidden]{display:none}
+#infTitle{font-weight:600;font-size:14px;line-height:1.35;margin:0 0 4px}
+#cycle{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+#cycle summary{cursor:pointer;font-size:13px;font-weight:600;list-style:none;display:flex;align-items:center;gap:8px}
+#cycle summary::-webkit-details-marker{display:none}
+#cycle summary::before{content:"";width:7px;height:7px;border-right:1.6px solid currentColor;border-bottom:1.6px solid currentColor;transform:rotate(-45deg);transition:transform .15s;margin-left:2px}
+#cycle[open] summary::before{transform:rotate(45deg)}
+#cycle ol{margin:10px 0 0;padding:0;list-style:none;display:grid;gap:9px;counter-reset:ph}
+#cycle li{display:grid;grid-template-columns:20px 1fr;gap:2px 8px;font-size:12.5px;line-height:1.5;color:var(--mute);counter-increment:ph}
+#cycle li::before{content:counter(ph);grid-row:1 / span 2;width:20px;height:20px;border-radius:50%;background:var(--btn);color:var(--ink);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center}
+#cycle li b{color:var(--ink);font-weight:600}
+#cycle .note{font-size:12px;color:var(--mute);margin:10px 0 0}
+#right{position:absolute;top:16px;right:16px;width:300px;display:flex;flex-direction:column;gap:10px;max-height:calc(100% - 232px)}
+#controls{padding:14px;flex:none}
+.rate{display:flex;align-items:baseline;gap:8px;margin-bottom:2px}
+#bpmVal{font-family:"Newsreader",Georgia,serif;font-size:34px;font-weight:500;line-height:1;font-variant-numeric:tabular-nums}
+.rate .u{color:var(--mute);font-size:13px}
+#beat{margin-left:auto;color:var(--art);font-size:22px;transition:transform .12s ease-out;display:inline-block}
+#beat.pulse{transform:scale(1.35)}
+input[type=range]{width:100%;accent-color:var(--art);margin:4px 0 2px}
+input[type=range]:disabled{opacity:.4}
+#rateNote{font-size:11.5px;color:var(--mute);margin:0 0 10px;min-height:14px}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+button{font:inherit;font-size:12.5px;font-weight:500;color:var(--ink);background:var(--btn);border:1px solid var(--line);border-radius:9px;padding:7px 8px;cursor:pointer;text-align:center;line-height:1.25}
+button[aria-pressed="true"]{background:var(--btn-on);color:var(--btn-on-ink);border-color:transparent}
+button:disabled{opacity:.4;cursor:default}
+button:focus-visible,input:focus-visible{outline:2px solid var(--ecg);outline-offset:2px}
+#sims{padding:14px;overflow:auto;min-height:0}
+#sims h2{font-size:12.5px;font-weight:600;margin:0 0 7px}
+#sims h2+.chips{margin-bottom:12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{padding:5px 8px;font-size:11.5px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+#bShock{background:var(--art);color:#fff;border-color:transparent}
+#bShock:disabled{background:var(--btn);color:var(--ink)}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--mute);margin-top:10px}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+#monitor{position:absolute;left:16px;right:16px;bottom:16px;padding:10px 14px 12px;display:grid;grid-template-columns:150px 1fr;gap:4px 16px}
+.mon-head{grid-column:1 / -1;display:flex;justify-content:space-between;gap:12px;font-size:12.5px;color:var(--mute)}
+#alarm{font-weight:600;color:var(--art)}
+#alarm.warn{color:var(--warn)}
+.vitals{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;align-content:center}
+.vital small{display:block;font-size:11.5px;color:var(--mute)}
+.vital b{font-family:"Newsreader",Georgia,serif;font-size:24px;font-weight:500;font-variant-numeric:tabular-nums;line-height:1.1}
+.vital b.bad{color:var(--art)}
+.vital b.mid{color:var(--warn)}
+#trace{width:100%;height:140px;display:block}
+#phases{grid-column:2;display:flex;gap:3px;font-size:11px}
+#phases span{flex:1;text-align:center;padding:3px 2px;border-radius:5px;background:var(--btn);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background-color .12s}
+#phases span.active{background:color-mix(in srgb,var(--art) 26%,transparent);font-weight:600}
+#labels{position:absolute;inset:0;pointer-events:none}
+.lab{position:absolute;left:0;top:0;font-size:12px;font-weight:500;white-space:nowrap}
+.lab span{position:absolute;transform:translate(8px,-50%);padding:3px 8px;border-radius:6px;background:var(--panel);border:1px solid var(--line);color:var(--ink)}
+.lab::before{content:"";position:absolute;width:6px;height:6px;border-radius:50%;background:var(--ink);transform:translate(-50%,-50%);box-shadow:0 0 0 2px var(--panel)}
+.lab.inf span{background:var(--art);color:#fff;border-color:transparent}
+#loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--mute);pointer-events:none}
+#flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+#toggleRight{display:none}
+@media (max-width:780px){
+  #info{left:12px;top:12px;width:calc(100% - 24px);padding:10px 12px;max-height:40%}
+  #rhTitle{font-size:21px;margin-bottom:4px}
+  .desc{font-size:12.5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer}
+  .desc.full{-webkit-line-clamp:unset;display:block}
+  #infBox{margin-top:8px}
+  #cycle{display:none}
+  #toggleRight{display:block;width:100%;margin-top:8px;padding:6px 9px;font-size:12.5px}
+  #info{z-index:2}
+  #right{display:none;left:12px;right:12px;width:auto;top:auto;bottom:226px;max-height:calc(100% - 440px);min-height:180px;overflow:auto}
+  #sims{order:-1;overflow:visible}
+  #right>.panel{flex:none}
+  #controls .legend{display:none}
+  #right.open{display:flex}
+  #monitor{left:10px;right:10px;bottom:10px;padding:8px 10px 10px;grid-template-columns:1fr}
+  .vitals{grid-template-columns:repeat(4,1fr)}
+  .vital b{font-size:19px}
+  #trace{height:108px}
+  #phases{grid-column:1;font-size:0}
+  #phases span{padding:3px 0}
+  .lab{font-size:10.5px}
+  .legend{display:none}
+}
+@media (prefers-reduced-motion: reduce){#beat{transition:none}}
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="gl" aria-label="Modelo 3D interactivo del corazón latiendo"></canvas>
+  <div id="labels"></div>
+  <div id="loading">Construyendo el modelo anatómico…</div>
+
+  <section class="panel" id="info">
+    <p class="eyebrow">Ritmo</p>
+    <h1 id="rhTitle" aria-live="polite">Ritmo sinusal normal</h1>
+    <p class="desc" id="rhDesc"></p>
+    <div id="infBox" hidden>
+      <p class="eyebrow">Infarto agudo</p>
+      <p id="infTitle"></p>
+      <p class="desc" id="infDesc"></p>
+    </div>
+    <details id="cycle">
+      <summary>Cómo funciona cada latido</summary>
+      <ol id="cycleList"></ol>
+      <p class="note">La fase en curso se resalta bajo el ECG, alineada con el trazado.</p>
+    </details>
+    <button id="toggleRight" aria-expanded="false" aria-controls="right">Controles y simulaciones</button>
+  </section>
+
+  <div id="right">
+    <aside class="panel" id="controls">
+      <div class="rate"><span id="bpmVal">72</span><span class="u">latidos/min</span><span id="beat" aria-hidden="true">♥</span></div>
+      <input type="range" id="bpm" min="40" max="160" value="72" aria-label="Frecuencia del ritmo sinusal">
+      <p id="rateNote"></p>
+      <div class="btns">
+        <button id="bPlay" aria-pressed="false">Pausar</button>
+        <button id="bSlow" aria-pressed="false">Cámara lenta</button>
+        <button id="bFlow" aria-pressed="false">Ver flujo y válvulas</button>
+        <button id="bLabels" aria-pressed="true">Etiquetas</button>
+        <button id="bSound" aria-pressed="false">Sonido</button>
+        <button id="bRotate" aria-pressed="true">Girar solo</button>
+      </div>
+      <div class="legend"><span><i style="background:var(--art)"></i>Oxigenada</span><span><i style="background:var(--ven)"></i>Desoxigenada</span></div>
+    </aside>
+    <aside class="panel" id="sims">
+      <h2>Arritmias</h2>
+      <div class="chips" id="rhChips"></div>
+      <h2>Infarto agudo por oclusión coronaria</h2>
+      <div class="chips" id="infChips"></div>
+      <div class="actions">
+        <button id="bShock" disabled>Desfibrilar</button>
+        <button id="bReset">Restablecer todo</button>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="panel" id="monitor">
+    <div class="mon-head"><span id="leadName">ECG DII · presión arterial</span><span id="alarm"></span></div>
+    <div class="vitals">
+      <div class="vital"><small>FC · lpm</small><b id="vHR">—</b></div>
+      <div class="vital"><small>PA · mmHg</small><b id="vPA">—</b></div>
+      <div class="vital"><small>FE · %</small><b id="vEF">—</b></div>
+      <div class="vital"><small>GC · L/min</small><b id="vCO">—</b></div>
+    </div>
+    <canvas id="trace"></canvas>
+    <div id="phases"></div>
+  </footer>
+  <div id="flash"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* Geometría procedural del corazón: campo de distancia con uniones suaves + surface nets.
+   Se usa tal cual en el navegador y en Node (para previsualizar). */
+var HeartGeom = (function(){
+"use strict";
+const sm=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);};
+function smin(a,b,k){const h=Math.max(k-Math.abs(a-b),0)/k;return Math.min(a,b)-h*h*k*0.25;}
+function euler(x,y,z){ // R = Rz*Ry*Rx  (fila mayor)
+  const cx=Math.cos(x),sx=Math.sin(x),cy=Math.cos(y),sy=Math.sin(y),cz=Math.cos(z),sz=Math.sin(z);
+  return [cz*cy, cz*sy*sx-sz*cx, cz*sy*cx+sz*sx,
+          sz*cy, sz*sy*sx+cz*cx, sz*sy*cx-cz*sx,
+          -sy,   cy*sx,          cy*cx];
+}
+function makeEll(c,r,rot,taper){
+  const R=euler(rot[0],rot[1],rot[2]);
+  const f=function(px,py,pz){
+    const x=px-c[0],y=py-c[1],z=pz-c[2];
+    const lx=R[0]*x+R[3]*y+R[6]*z, ly=R[1]*x+R[4]*y+R[7]*z, lz=R[2]*x+R[5]*y+R[8]*z;
+    let s=1; if(taper) s=taper[0]+(1-taper[0])*sm(-r[1]*taper[1],r[1]*taper[2],ly);
+    const ax=r[0]*s, az=r[2]*s;
+    const ex=lx/ax,ey=ly/r[1],ez=lz/az, k0=Math.sqrt(ex*ex+ey*ey+ez*ez);
+    const fx=lx/(ax*ax),fy=ly/(r[1]*r[1]),fz=lz/(az*az), k1=Math.sqrt(fx*fx+fy*fy+fz*fz)||1e-6;
+    return k0*(k0-1)/k1;
+  };
+  f.c=c; f.R=R; f.r=r; return f;
+}
+function makeCap(a,b,r){
+  const bx=b[0]-a[0],by=b[1]-a[1],bz=b[2]-a[2],bb=bx*bx+by*by+bz*bz;
+  return function(px,py,pz){
+    const x=px-a[0],y=py-a[1],z=pz-a[2]; let h=(x*bx+y*by+z*bz)/bb; h=Math.max(0,Math.min(1,h));
+    const dx=x-bx*h,dy=y-by*h,dz=z-bz*h; return Math.sqrt(dx*dx+dy*dy+dz*dz)-r;
+  };
+}
+
+/* cono redondeado entre dos puntos con radios distintos (embudos, raíces de vasos) */
+function makeRCone(a,b,r1,r2){
+  const ba=[b[0]-a[0],b[1]-a[1],b[2]-a[2]], l2=ba[0]*ba[0]+ba[1]*ba[1]+ba[2]*ba[2], rr=r1-r2, a2=l2-rr*rr, il2=1/l2;
+  return function(px,py,pz){
+    const pa=[px-a[0],py-a[1],pz-a[2]], y=pa[0]*ba[0]+pa[1]*ba[1]+pa[2]*ba[2], z=y-l2;
+    const qx=pa[0]*l2-ba[0]*y, qy=pa[1]*l2-ba[1]*y, qz=pa[2]*l2-ba[2]*y, x2=qx*qx+qy*qy+qz*qz, y2=y*y*l2, z2=z*z*l2;
+    const k=Math.sign(rr)*rr*rr*x2;
+    if(Math.sign(z)*a2*z2>k) return Math.sqrt(x2+z2)*il2-r2;
+    if(Math.sign(y)*a2*y2<k) return Math.sqrt(x2+y2)*il2-r1;
+    return (Math.sqrt(x2*a2*il2)+y*rr)*il2-r1;
+  };
+}
+const smax=(a,b,k)=>-smin(-a,-b,k);
+
+/* ---- primitivas (coordenadas del corazón: x = izquierda del paciente, y = arriba, z = anterior) ---- */
+const LV   = makeEll([0.4,-0.4,-0.18],[1.0,1.62,0.98],[-0.22,0,0.6],[0.5,1.0,0.3]);
+const RV   = makeEll([-0.14,-0.48,0.3],[0.9,1.3,0.74],[-0.2,0,0.92],[0.55,1.0,0.5]);
+const CONUS= makeRCone([-0.06,-0.28,0.42],[0.42,0.5,0.55],0.43,0.25);   // infundíbulo: embudo hacia la válvula pulmonar
+const RA   = makeEll([-1.0,0.66,0.04],[0.54,0.82,0.6],[0.05,0,-0.1]);
+const LA   = makeEll([0.15,0.98,-0.8],[0.95,0.44,0.56],[0,0,0.05]);
+/* orejuelas: lóbulos triangulares (ahusados hacia la punta) */
+const RAUR = makeRCone([-0.88,0.98,0.34],[-0.28,1.12,0.76],0.3,0.12);   // orejuela derecha: abraza la raíz aórtica
+const LAUR = makeRCone([0.74,0.98,-0.14],[0.78,0.92,0.5],0.26,0.1);   // orejuela izquierda: rodea el tronco pulmonar
+const AOROOT=makeRCone([0.02,0.5,-0.05],[-0.05,0.96,0.0],0.33,0.33);    // senos de Valsalva
+const ROOTS=[
+  makeCap([-1.15,1.3,0.06],[-1.1,0.95,0.08],0.235),    // vena cava superior
+  makeCap([-1.06,-0.05,0.0],[-1.06,0.35,0.06],0.245),   // vena cava inferior
+  AOROOT,
+  makeRCone([0.42,0.48,0.56],[0.47,0.86,0.56],0.27,0.29),  // tronco pulmonar
+  makeCap([-0.7,1.1,-0.88],[-0.25,1.0,-0.72],0.102),
+  makeCap([-0.7,0.78,-0.88],[-0.25,0.86,-0.72],0.102),
+  makeCap([1.05,1.12,-0.86],[0.65,1.02,-0.74],0.102),
+  makeCap([1.05,0.8,-0.86],[0.65,0.88,-0.74],0.102)
+];
+/* cara diafragmática: plano casi paralelo al eje del VI que aplana la cara inferior */
+const DIA=(function(){const n=[0.2,-1,-0.3],m=Math.hypot(n[0],n[1],n[2]);return [n[0]/m,n[1]/m,n[2]/m];})();
+const DIAH=1.64;
+function scallop(x,y,z){ // borde festoneado de las orejuelas
+  return 0.022*Math.sin(x*14+y*5)*Math.sin(z*13-x*4)+0.012*Math.sin(y*22+z*9);
+}
+function parts(x,y,z){
+  const lv=LV(x,y,z), rv=RV(x,y,z), co=CONUS(x,y,z);
+  let vent=smin(smin(lv,rv,0.14),co,0.26);
+  vent=smax(vent,x*DIA[0]+y*DIA[1]+z*DIA[2]-DIAH,0.28);
+  const ra=smin(RA(x,y,z),RAUR(x,y,z)+scallop(x,y,z),0.16);
+  const la=smin(LA(x,y,z),LAUR(x,y,z)+scallop(x+3,y,z),0.14);
+  const atr=smin(ra,la,0.16);
+  let ves=1e9; for(let i=0;i<ROOTS.length;i++){const d=ROOTS[i](x,y,z); if(d<ves) ves=d;}
+  const core=smin(vent,atr,0.15);
+  const noise=0.006*(Math.sin(x*7.1+y*3.3)*Math.sin(z*6.7-y*4.1)+0.5*Math.sin(x*13.0+z*11.0));
+  const all=smin(core,ves,0.1)+noise;
+  return {lv,rv,co,vent,ra,la,atr,ves,core,all};
+}
+function sdf(x,y,z){return parts(x,y,z).all;}
+function grad(x,y,z,e){e=e||0.004;return [sdf(x+e,y,z)-sdf(x-e,y,z),sdf(x,y+e,z)-sdf(x,y-e,z),sdf(x,y,z+e)-sdf(x,y,z-e)];}
+function nrm(v){const l=Math.hypot(v[0],v[1],v[2])||1;return [v[0]/l,v[1]/l,v[2]/l];}
+function project(p,it){p=p.slice();for(let i=0;i<(it||8);i++){const d=sdf(p[0],p[1],p[2]);const g=nrm(grad(p[0],p[1],p[2]));p[0]-=g[0]*d;p[1]-=g[1]*d;p[2]-=g[2]*d;}return p;}
+function march(o,d){let t=0;for(let i=0;i<160;i++){const p=[o[0]+d[0]*t,o[1]+d[1]*t,o[2]+d[2]*t];const s=sdf(p[0],p[1],p[2]);if(s<0.0008)return p;t+=Math.max(s*0.8,0.002);if(t>10)return null;}return null;}
+
+/* ---- surface nets ---- */
+function surfaceNets(f,b0,b1,h){
+  const nx=Math.ceil((b1[0]-b0[0])/h)+1, ny=Math.ceil((b1[1]-b0[1])/h)+1, nz=Math.ceil((b1[2]-b0[2])/h)+1;
+  const V=new Float32Array(nx*ny*nz);
+  for(let k=0;k<nz;k++)for(let j=0;j<ny;j++)for(let i=0;i<nx;i++) V[i+nx*(j+ny*k)]=f(b0[0]+i*h,b0[1]+j*h,b0[2]+k*h);
+  const cx=nx-1, cy=ny-1, cz=nz-1, cell=new Int32Array(cx*cy*cz).fill(-1), pos=[];
+  const E=[[0,1],[2,3],[4,5],[6,7],[0,2],[1,3],[4,6],[5,7],[0,4],[1,5],[2,6],[3,7]];
+  const val=new Float32Array(8);
+  for(let k=0;k<cz;k++)for(let j=0;j<cy;j++)for(let i=0;i<cx;i++){
+    let mask=0;
+    for(let c=0;c<8;c++){const v=V[(i+(c&1))+nx*((j+((c>>1)&1))+ny*(k+((c>>2)&1)))];val[c]=v;if(v<0)mask|=1<<c;}
+    if(mask===0||mask===255)continue;
+    let sx=0,sy=0,sz=0,n=0;
+    for(let e=0;e<12;e++){const a=E[e][0],b=E[e][1];if(((mask>>a)&1)===((mask>>b)&1))continue;
+      const t=val[a]/(val[a]-val[b]);
+      sx+=(a&1)+t*((b&1)-(a&1)); sy+=((a>>1)&1)+t*(((b>>1)&1)-((a>>1)&1)); sz+=((a>>2)&1)+t*(((b>>2)&1)-((a>>2)&1)); n++;}
+    cell[i+cx*(j+cy*k)]=pos.length/3;
+    pos.push(b0[0]+(i+sx/n)*h,b0[1]+(j+sy/n)*h,b0[2]+(k+sz/n)*h);
+  }
+  const C=(i,j,k)=>cell[i+cx*(j+cy*k)], idx=[];
+  const quad=(a,b,c,d)=>{if(a<0||b<0||c<0||d<0)return;idx.push(a,b,c,a,c,d);};
+  for(let k=0;k<nz;k++)for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){
+    const s0=V[i+nx*(j+ny*k)]<0;
+    if(i<cx&&j>0&&k>0&&j<cy&&k<cz&&(V[(i+1)+nx*(j+ny*k)]<0)!==s0) quad(C(i,j-1,k-1),C(i,j,k-1),C(i,j,k),C(i,j-1,k));
+    if(j<cy&&i>0&&k>0&&i<cx&&k<cz&&(V[i+nx*((j+1)+ny*k)]<0)!==s0) quad(C(i-1,j,k-1),C(i-1,j,k),C(i,j,k),C(i,j,k-1));
+    if(k<cz&&i>0&&j>0&&i<cx&&j<cy&&(V[i+nx*(j+ny*(k+1))]<0)!==s0) quad(C(i-1,j-1,k),C(i,j-1,k),C(i,j,k),C(i-1,j,k));
+  }
+  return {pos,idx};
+}
+
+/* ---- ejes del ventrículo izquierdo ---- */
+const LVR=LV.R, LVc=LV.c;
+const lvAxis=nrm([LVR[1],LVR[4],LVR[7]]);             // columna y: hacia la base
+const apex=[LVc[0]-lvAxis[0]*1.5,LVc[1]-lvAxis[1]*1.5,LVc[2]-lvAxis[2]*1.5];
+function lvLocal(x,y,z){const dx=x-LVc[0],dy=y-LVc[1],dz=z-LVc[2];
+  return [LVR[0]*dx+LVR[3]*dy+LVR[6]*dz, LVR[1]*dx+LVR[4]*dy+LVR[7]*dz, LVR[2]*dx+LVR[5]*dy+LVR[8]*dz];}
+function angDiff(a,b){let d=a-b;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;return d;}
+const plateau=(d,hw,s)=>1-sm(hw-s,hw+s,Math.abs(d));
+function territories(x,y,z){ // [DA, Cx, CD]
+  const l=lvLocal(x,y,z), r=Math.hypot(l[0],l[1],l[2])||1, th=Math.acos(Math.max(-1,Math.min(1,l[1]/r))), ph=Math.atan2(l[0],l[2]);
+  const lad=Math.min(1,plateau(angDiff(ph,0.3),0.85,0.25)*sm(0.75,1.25,th)+sm(2.2,2.55,th));
+  const lcx=plateau(angDiff(ph,1.95),0.75,0.25)*sm(0.45,0.95,th)*(1-sm(2.15,2.5,th));
+  const rca=Math.max(plateau(angDiff(ph,-2.6),0.6,0.25)*sm(0.55,1.05,th)*(1-sm(2.2,2.5,th)),
+                     0.85*plateau(angDiff(ph,-1.05),0.65,0.25)*sm(0.5,1.0,th)*(1-sm(2.0,2.4,th)));
+  return [lad,lcx,rca];
+}
+/* regiones para la animación: [ventrículos, aurícula derecha, aurícula izquierda] */
+function regions(p){
+  const d=[p.vent,p.ra,p.la,p.ves], m=Math.min(d[0],d[1],d[2],d[3]);
+  const w=d.map(v=>Math.exp(-(v-m)/0.045)), s=w[0]+w[1]+w[2]+w[3];
+  return [w[0]/s,w[1]/s,w[2]/s];
+}
+function vertexAttrs(x,y,z){
+  const p=parts(x,y,z), reg=regions(p), t=territories(x,y,z);
+  return {reg, terr:[t[0]*reg[0],t[1]*reg[0],t[2]*reg[0]], p};
+}
+
+/* ---- construcción de la malla principal ---- */
+function buildMesh(h){
+  const sn=surfaceNets(sdf,[-2.15,-2.25,-1.85],[2.1,1.95,1.65],h||0.034);
+  const n=sn.pos.length/3, P=new Float32Array(sn.pos), N=new Float32Array(n*3), COL=new Float32Array(n*3), REG=new Float32Array(n*3), TER=new Float32Array(n*3);
+  const myo=[0.40,0.05,0.045], atrC=[0.30,0.035,0.055], aurC=[0.52,0.10,0.10], fat=[0.80,0.57,0.26];
+  for(let i=0;i<n;i++){
+    let p=project([P[i*3],P[i*3+1],P[i*3+2]],2); P[i*3]=p[0];P[i*3+1]=p[1];P[i*3+2]=p[2];
+    const g=nrm(grad(p[0],p[1],p[2],0.01)); N[i*3]=g[0];N[i*3+1]=g[1];N[i*3+2]=g[2];
+    const a=vertexAttrs(p[0],p[1],p[2]), q=a.p;
+    REG[i*3]=a.reg[0];REG[i*3+1]=a.reg[1];REG[i*3+2]=a.reg[2];
+    TER[i*3]=a.terr[0];TER[i*3+1]=a.terr[1];TER[i*3+2]=a.terr[2];
+    const aur=Math.max(Math.exp(-Math.max(0,RAUR(p[0],p[1],p[2])+0.02)/0.05),Math.exp(-Math.max(0,LAUR(p[0],p[1],p[2])+0.02)/0.05));
+    const atw=a.reg[1]+a.reg[2];
+    let c=[0,1,2].map(k=>myo[k]*a.reg[0]+ (atrC[k]*(1-aur)+aurC[k]*aur)*atw + myo[k]*(1-a.reg[0]-atw));
+    const gIV=Math.exp(-Math.pow(q.lv-q.rv,2)/(2*0.025*0.025))*sm(-0.05,0.02,Math.min(q.lv,q.rv)+0.06);
+    const gCo=Math.exp(-Math.pow(q.lv-q.co,2)/(2*0.03*0.03))*0.25;
+    const gAV=Math.exp(-Math.pow(q.vent-q.atr,2)/(2*0.045*0.045));
+    const gRt=Math.exp(-Math.pow(q.core-q.ves,2)/(2*0.035*0.035))*0.75;
+    const blot=0.5+0.5*Math.sin(p[0]*11+p[2]*7)*Math.sin(p[1]*9-p[0]*5);
+    let fw=Math.min(1,gIV*0.9+gCo*0.4+gAV*(0.75+0.25*blot)+gRt);
+    fw=Math.pow(fw,1.2);
+    const jit=0.9+0.2*(0.5+0.5*Math.sin(p[0]*31+p[1]*17)*Math.cos(p[2]*23));
+    for(let k=0;k<3;k++) COL[i*3+k]=(c[k]*jit)*(1-fw)+fat[k]*fw;
+  }
+  const I=sn.idx;
+  for(let t=0;t<I.length;t+=3){
+    const a=I[t],b=I[t+1],c=I[t+2];
+    const ux=P[b*3]-P[a*3],uy=P[b*3+1]-P[a*3+1],uz=P[b*3+2]-P[a*3+2], vx=P[c*3]-P[a*3],vy=P[c*3+1]-P[a*3+1],vz=P[c*3+2]-P[a*3+2];
+    const fx=uy*vz-uz*vy, fy=uz*vx-ux*vz, fz=ux*vy-uy*vx;
+    const s=fx*(N[a*3]+N[b*3]+N[c*3])+fy*(N[a*3+1]+N[b*3+1]+N[c*3+1])+fz*(N[a*3+2]+N[b*3+2]+N[c*3+2]);
+    if(s<0){I[t+1]=c;I[t+2]=b;}
+  }
+  return {position:P,normal:N,color:COL,reg:REG,terr:TER,index:(n>65535?new Uint32Array(I):new Uint16Array(I))};
+}
+
+/* ---- trazado de coronarias sobre los surcos ---- */
+const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]], add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]], mul=(a,s)=>[a[0]*s,a[1]*s,a[2]*s];
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2], cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+function frame(axis,front){const e2=nrm(sub(front,mul(axis,dot(front,axis))));const e1=cross(axis,e2);return [e1,e2];}
+/* busca, alrededor de un eje, el ángulo donde g(p) cambia de signo en la superficie */
+function grooveRing(center,axis,e1,e2,g,phiA,phiB,steps){
+  let prev=null,out=null;
+  for(let s=0;s<=steps;s++){
+    const phi=phiA+(phiB-phiA)*s/steps, dir=add(mul(e2,Math.cos(phi)),mul(e1,Math.sin(phi)));
+    const hit=march(add(center,mul(dir,3.2)),mul(dir,-1)); if(!hit){prev=null;continue;}
+    const q=parts(hit[0],hit[1],hit[2]), v=g(q);
+    if(prev&&(v<0)!==(prev.v<0)){const t=prev.v/(prev.v-v);out=project(add(prev.p,mul(sub(hit,prev.p),t)),4);break;}
+    prev={p:hit,v};
+  }
+  return out;
+}
+function offsetOut(p,d){const g=nrm(grad(p[0],p[1],p[2],0.01));return add(p,mul(g,d));}
+function walk(start,dirFn,n,step){ // camina sobre la superficie
+  const pts=[start]; let p=start;
+  for(let i=0;i<n;i++){const d=nrm(dirFn(p,i));let q=project(add(p,mul(d,step)),5);pts.push(q);p=q;}
+  return pts;
+}
+function coronaries(){
+  const A=lvAxis, [e1,e2]=frame(A,[0,0,1]);
+  // surco interventricular: estaciones a lo largo del eje del VI
+  const ant=[],post=[];
+  for(let s=1.05;s>=-1.05;s-=0.1){
+    const c=add(LVc,mul(A,s));
+    const gIV=q=>q.lv-Math.min(q.rv,q.co);
+    const pa=grooveRing(c,A,e1,e2,gIV,1.0,-1.9,120); if(pa) ant.push(pa);
+    const pp=grooveRing(c,A,e1,e2,gIV,2.0,5.3,120); if(pp) post.push(pp);
+  }
+  // prolongar DA hasta el ápex
+  const apexP=project(apex,8);
+  if(ant.length){const last=ant[ant.length-1];for(let k=1;k<=4;k++)ant.push(project(add(last,mul(sub(apexP,last),k/4)),6));}
+  // surco auriculoventricular
+  const avC=[-0.4,0.42,-0.2], avAxis=nrm([-0.45,0.85,-0.2]);
+  const [f1,f2]=frame(avAxis,[0,0,1]);
+  const ringPts=[];
+  for(let k=0;k<=72;k++){
+    const phi=-Math.PI+k*(2*Math.PI/72), dir=add(mul(f2,Math.cos(phi)),mul(f1,Math.sin(phi)));
+    // buscar a lo largo del eje la frontera ventrículo/aurícula
+    let prev=null,hitP=null;
+    for(let s=-0.9;s<=1.0;s+=0.04){
+      const o=add(add(avC,mul(avAxis,s)),mul(dir,3.2)), h=march(o,mul(dir,-1)); if(!h){prev=null;continue;}
+      const q=parts(h[0],h[1],h[2]), v=q.vent-q.atr;
+      if(q.ves<q.core-0.02){prev=null;continue;}
+      if(prev&&(v<0)!==(prev.v<0)){const t=prev.v/(prev.v-v);hitP=project(add(prev.p,mul(sub(h,prev.p),t)),4);break;}
+      prev={p:h,v};
+    }
+    ringPts.push({phi,p:hitP});
+  }
+  return {ant,post,ring:ringPts,apex:apexP,e1,e2,f1,f2};
+}
+
+function coronaryTree(){
+  const c=coronaries(), e1=c.e1, A=lvAxis;
+  const P3=a=>project(a,8);
+  const ring=c.ring.filter(r=>r.p&&r.p[1]<0.86);
+  const ringRange=(a,b)=>{const out=ring.filter(r=>a<b?(r.phi>=a&&r.phi<=b):(r.phi<=a&&r.phi>=b));out.sort((x,y)=>a<b?x.phi-y.phi:y.phi-x.phi);return out.map(r=>r.p);};
+  const toApex=p=>sub(c.apex,p);
+  const lm0=P3([0.2,0.66,-0.08]), lm1=P3([0.5,0.66,0.14]);
+  const ladUp=[P3([0.66,0.58,0.38])];
+  const ant=c.ant.filter(p=>p[1]<0.45);
+  const LAD=[lm0,lm1,...ladUp,...ant];
+  const lcx=ringRange(1.02,2.75);
+  const LCX=[lm0,lm1,P3([0.8,0.62,0.12]),...lcx];
+  const rcaRing=ringRange(0.1,-2.8);
+  const RCA=[P3([-0.2,0.7,0.2]),...rcaRing];
+  const PDA=c.post.slice(0,Math.max(2,Math.floor(c.post.length*0.8)));
+  const at=(arr,f)=>arr[Math.min(arr.length-1,Math.floor(arr.length*f))];
+  const branch=(start,latW,apW,n,st)=>walk(start,(p,i)=>add(mul(nrm(toApex(p)),apW+i*0.04),mul(e1,latW)),n,st||0.1);
+  const D1=branch(at(LAD,0.38),0.9,0.45,9), D2=branch(at(LAD,0.58),0.75,0.6,7);
+  const OM=branch(at(LCX,0.45),0.1,1.0,9), AM=branch(at(RCA,0.45),-0.35,1.0,8);
+  const GCV=ant.map(p=>P3(add(p,mul(e1,0.075))));
+  const CS=ringRange(1.3,-2.6<0?3.1:0).concat(ringRange(-3.14,-2.5));
+  const MCV=PDA.map(p=>P3(add(p,mul(e1,-0.07))));
+  const out=(pts,d)=>pts.map(p=>offsetOut(p,d));
+  return [
+    {name:"LAD",pts:out(LAD,0.028),r:0.036,kind:"art",terr:0,split:0.2},
+    {name:"D1",pts:out(D1,0.02),r:0.022,kind:"art",terr:0,split:0},
+    {name:"D2",pts:out(D2,0.018),r:0.019,kind:"art",terr:0,split:0},
+    {name:"LCX",pts:out(LCX,0.026),r:0.032,kind:"art",terr:1,split:0.3},
+    {name:"OM",pts:out(OM,0.02),r:0.022,kind:"art",terr:1,split:0},
+    {name:"RCA",pts:out(RCA,0.03),r:0.036,kind:"art",terr:2,split:0.18},
+    {name:"AM",pts:out(AM,0.02),r:0.021,kind:"art",terr:2,split:0},
+    {name:"PDA",pts:out(PDA,0.022),r:0.026,kind:"art",terr:2,split:0},
+    {name:"GCV",pts:out(GCV,0.026),r:0.03,kind:"vein"},
+    {name:"CS",pts:out(CS,0.04),r:0.05,kind:"vein"},
+    {name:"MCV",pts:out(MCV,0.022),r:0.026,kind:"vein"}
+  ];
+}
+
+return {coronaryTree,sdf,parts,grad,project,march,buildMesh,coronaries,offsetOut,walk,vertexAttrs,territories,lvAxis,apex,LVc,nrm,add,sub,mul,dot,cross,
+        centers:{RA:RA.c,LA:LA.c}};
+})();
+if(typeof module!=="undefined") module.exports=HeartGeom;
+
+</script>
+<script>
+/* Núcleo de simulación sin DOM: eventos eléctricos, hemodinámica y ECG. */
+var SimCore = (function(){
+"use strict";
+const sm=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);};
+const gauss=(t,m,s)=>Math.exp(-((t-m)*(t-m))/(2*s*s));
+
+const RHY={
+  normal:{label:"Sinusal normal",title:"Ritmo sinusal normal",atr:"sinus",rate:null,pr:0.16,conduct:true,
+    desc:"El nódulo sinusal marca el ritmo. Cada onda P va seguida de un QRS estrecho y las aurículas se contraen justo antes que los ventrículos."},
+  taqui:{label:"Taquicardia sinusal",title:"Taquicardia sinusal",atr:"sinus",rate:135,pr:0.13,conduct:true,
+    desc:"Ritmo sinusal acelerado, típico de fiebre, dolor, ejercicio o hipovolemia. La diástole se acorta mucho más que la sístole, así que hay menos tiempo de llenado."},
+  bradi:{label:"Bradicardia sinusal",title:"Bradicardia sinusal",atr:"sinus",rate:42,pr:0.19,conduct:true,
+    desc:"Ritmo sinusal lento. Es normal en deportistas o durante el sueño; también aparece con betabloqueadores o hipotiroidismo. El llenado largo aumenta el volumen por latido."},
+  fa:{label:"Fibrilación auricular",title:"Fibrilación auricular",atr:"af",vIrr:110,
+    desc:"Las aurículas reciben 350 a 600 impulsos caóticos por minuto y solo tiemblan. No hay ondas P, los QRS llegan de forma irregularmente irregular y se pierde la contracción auricular. La sangre estancada en la orejuela izquierda favorece los trombos."},
+  flutter:{label:"Flutter auricular",title:"Flutter auricular 2:1",atr:"flutter",frate:300,ratio:2,pr:0.24,
+    desc:"Un circuito de reentrada en la aurícula derecha la activa a unas 300 veces por minuto: ondas F en diente de sierra. El nodo AV deja pasar 1 de cada 2, así que los ventrículos laten a unos 150 por minuto."},
+  esv:{label:"Extrasístoles ventriculares",title:"Extrasístoles ventriculares",atr:"sinus",rate:72,pr:0.16,conduct:true,pvc:true,
+    desc:"Algunos latidos nacen antes de tiempo en el propio ventrículo: QRS ancho y extraño, sin onda P y seguido de una pausa compensadora. El latido prematuro expulsa poca sangre porque el ventrículo no alcanzó a llenarse."},
+  tv:{label:"Taquicardia ventricular",title:"Taquicardia ventricular",atr:"sinus",rate:84,conduct:false,vReg:180,vk:"V",shock:true,
+    desc:"Un foco ventricular dispara a unos 180 por minuto con QRS anchos, independiente de las aurículas. El llenado es tan corto que el volumen expulsado y la presión caen. Puede degenerar en fibrilación ventricular."},
+  fv:{label:"Fibrilación ventricular",title:"Fibrilación ventricular",atr:"af",vf:true,shock:true,
+    desc:"La activación ventricular es caótica: el músculo tiembla sin contraerse, no hay gasto cardíaco ni pulso. Es un paro cardíaco y requiere RCP y desfibrilación inmediatas."},
+  bav3:{label:"Bloqueo AV completo",title:"Bloqueo AV de tercer grado",atr:"sinus",rate:80,conduct:false,vReg:38,vk:"E",
+    desc:"Ningún impulso auricular atraviesa el nodo AV. Las aurículas siguen a unos 80 por minuto y los ventrículos laten por su cuenta con un ritmo de escape lento, de QRS ancho: disociación auriculoventricular."}
+};
+const INF=[
+  {key:"lad",label:"Descendente anterior",title:"Infarto anterior (oclusión de la descendente anterior)",lead:"V3",drop:0.5,
+   desc:"La descendente anterior irriga la pared anterior, los dos tercios anteriores del tabique y el ápex. Es el infarto más extenso: esa pared deja de contraerse y la fracción de eyección cae. ECG: supradesnivel del ST en V1 a V4."},
+  {key:"lcx",label:"Circunfleja",title:"Infarto lateral (oclusión de la circunfleja)",lead:"I",drop:0.3,
+   desc:"La circunfleja irriga la pared lateral y posterolateral del ventrículo izquierdo. ECG: supradesnivel del ST en DI, aVL, V5 y V6; a veces el trazado es poco llamativo."},
+  {key:"rca",label:"Coronaria derecha",title:"Infarto inferior (oclusión de la coronaria derecha)",lead:"II",drop:0.25,
+   desc:"La coronaria derecha irriga la cara inferior, el tercio posterior del tabique y el ventrículo derecho; en la mayoría también el nodo sinusal y el nodo AV, por eso puede causar bradicardia o bloqueos. ECG: supradesnivel del ST en DII, DIII y aVF."}
+];
+const LEADS={II:{name:"DII",P:0.13,q:-0.10,R:1.0,S:-0.25,T:0.30,w:1},
+             V3:{name:"V3",P:0.08,q:0,R:0.55,S:-0.75,T:0.40,w:-0.85},
+             I:{name:"DI",P:0.09,q:-0.08,R:0.75,S:-0.15,T:0.22,w:0.75}};
+const HP={V0:10,Emin:0.06,Emax:2.3,Rmv:0.012,Rav:0.018,Rs:1.08,C:1.7};
+
+function create(getBpm){
+  const S={t:0,rhKey:"normal",rh:RHY.normal,inf:-1,infP:0,
+    aEv:[],vEv:[],pend:[],nextA:0.2,nextV:0.5,lastV:-1,flCount:0,pvcCount:0,pvcNext:4,shockT:-10,
+    V:120,Pa:88,Va:55,Qin:0,Qout:0,Qmean:84,Pv:5,Pla:6,act:0,a:0,avOpen:true,slOpen:false,
+    minV:120,ef:0.58,efH:[],paHist:[],lastSample:0,s1:false,s2:false};
+  const rate=()=> S.rh.rate==null?getBpm():S.rh.rate;
+  function expRR(){const r=S.rh;if(r.vReg)return 60/r.vReg;if(r.vIrr)return 60/r.vIrr;if(r.atr==="flutter")return 60/r.frate*r.ratio;return 60/rate();}
+  function pushPend(e){S.pend.push(e);S.pend.sort((a,b)=>a.t-b.t);}
+  function fireV(e){
+    if(S.rh.vf)return;
+    const RR=e.t-S.lastV;
+    if(e.cond&&RR<Math.min(0.4,0.8*expRR()))return;
+    if(S.vEv.length){const pe=S.vEv[S.vEv.length-1];S.efH.push(Math.max(0,(pe.edv-S.minV)/pe.edv));if(S.efH.length>4)S.efH.shift();S.ef=S.efH.reduce((a,b)=>a+b,0)/S.efH.length;}
+    S.lastV=e.t; S.minV=S.V;
+    const dur=Math.min(0.46,Math.max(0.24,0.40*Math.sqrt(Math.min(Math.max(RR,0.25),1.6))))+(e.k!=="N"?0.04:0);
+    S.vEv.push({t:e.t,k:e.k,S:dur,RR,edv:S.V}); if(S.vEv.length>12)S.vEv.shift();
+    if(S.rh.pvc&&e.k==="N"){if(++S.pvcCount>=S.pvcNext){S.pvcCount=0;S.pvcNext=3+Math.floor(Math.random()*3);pushPend({t:e.t+0.44,k:"V",cond:false});}}
+  }
+  function events(t){
+    const r=S.rh;
+    if(r.atr!=="af"){
+      while(S.nextA<=t){
+        const ta=S.nextA;
+        if(r.atr==="flutter"){S.aEv.push({t:ta,k:"F"});S.flCount++;if(S.flCount%r.ratio===0)pushPend({t:ta+r.pr,k:"N",cond:true});S.nextA+=60/r.frate;}
+        else{S.aEv.push({t:ta,k:"P"});if(r.conduct)pushPend({t:ta+r.pr,k:"N",cond:true});S.nextA+=60/rate()*(1+(Math.random()-0.5)*0.04);}
+        if(S.aEv.length>16)S.aEv.shift();
+      }
+    } else S.nextA=t+0.2;
+    if(!r.vf&&(r.vReg||r.vIrr)){
+      while(S.nextV<=t){pushPend({t:S.nextV,k:r.vk||"N",cond:false});
+        S.nextV+=r.vReg?60/r.vReg*(1+(Math.random()-0.5)*0.03):Math.max(0.33,60/r.vIrr*(0.5+Math.random()));}
+    } else S.nextV=t+0.3;
+    while(S.pend.length&&S.pend[0].t<=t) fireV(S.pend.shift());
+  }
+  function ventAct(t){
+    if(S.rh.vf)return 0; const e=S.vEv[S.vEv.length-1]; if(!e)return 0;
+    const d=t-e.t; if(d<0||d>e.S+0.08)return 0;
+    const eff=e.k==="N"?1:(e.k==="E"?0.85:0.6);
+    return eff*sm(0.015,0.09,d)*(1-sm(e.S-0.06,e.S+0.06,d));
+  }
+  function atrAct(t){
+    if(S.rh.atr==="af")return 0; let a=0;
+    for(let i=S.aEv.length-1;i>=0;i--){const e=S.aEv[i],d=t-e.t;if(d<0)continue;if(d>0.3)break;
+      if(e.k==="P"){if(d>0.05&&d<0.17)a=Math.max(a,Math.pow(Math.sin(Math.PI*(d-0.05)/0.12),2));}
+      else if(d>0.02&&d<0.12)a=Math.max(a,0.4*Math.pow(Math.sin(Math.PI*(d-0.02)/0.1),2));}
+    return a;
+  }
+  function contractility(){return S.inf>=0?1-INF[S.inf].drop*S.infP:1;}
+  function step(dt){
+    S.t+=dt; const t=S.t; events(t);
+    const act=ventAct(t), a=atrAct(t), c=contractility();
+    const E=HP.Emin+(HP.Emax*c-HP.Emin)*act;
+    const Pv=E*Math.max(0,S.V-HP.V0);
+    const Pla=6+(S.Va-55)*0.12+5*a;
+    const Qin=Pla>Pv?(Pla-Pv)/HP.Rmv:0, Qout=Pv>S.Pa?(Pv-S.Pa)/HP.Rav:0;
+    S.V+=(Qin-Qout)*dt; S.Pa+=(Qout-S.Pa/HP.Rs)*dt/HP.C;
+    const Qven=S.Qmean*Math.max(0,1-Math.max(0,Pla-12)/25);
+    S.Va+=(Qven-Qin)*dt; S.Va=Math.max(25,Math.min(150,S.Va));
+    S.Qmean+=(Qout-S.Qmean)*dt/4;
+    if(S.V<S.minV)S.minV=S.V;
+    const av=Pla-Pv>-0.3, sl=Qout>0.5;
+    if(S.avOpen&&!av)S.s1=true; if(S.slOpen&&!sl)S.s2=true;
+    S.avOpen=av; S.slOpen=sl; S.Qin=Qin; S.Qout=Qout; S.Pv=Pv; S.Pla=Pla; S.act=act; S.a=a;
+    if(t-S.lastSample>0.02){S.lastSample=t;S.paHist.push([t,S.Pa]);while(S.paHist.length&&S.paHist[0][0]<t-4)S.paHist.shift();}
+  }
+  function phase(){
+    if(S.rh.vf)return -1;
+    const e=S.vEv[S.vEv.length-1], d=e?S.t-e.t:9;
+    if(S.slOpen)return 2;
+    if(!S.avOpen)return (e&&d<e.S*0.5)?1:3;
+    if(S.a>0.05)return 0;
+    return 4;
+  }
+  function vitals(){
+    let hr=0; const n=S.vEv.length;
+    if(!S.rh.vf&&n>=2&&S.t-S.vEv[n-1].t<3){let s=0,k=0;for(let i=Math.max(1,n-4);i<n;i++){s+=S.vEv[i].t-S.vEv[i-1].t;k++;}hr=60/(s/k);}
+    let mx=-1,mn=1e9; for(const p of S.paHist){if(p[1]>mx)mx=p[1];if(p[1]<mn)mn=p[1];}
+    if(mx<0){mx=S.Pa;mn=S.Pa;}
+    return {hr,sys:mx,dia:mn,ef:S.ef,co:S.Qmean*60/1000};
+  }
+  function lead(){return S.inf>=0?INF[S.inf].lead:"II";}
+  function stAmp(){return S.inf>=0?0.28*S.infP:0;}
+  function complexAt(d,e,L){
+    const st=stAmp();
+    if(e.k==="N") return L.q*gauss(d,-0.012,0.005)+L.R*gauss(d,0,0.0065)+L.S*gauss(d,0.016,0.006)
+      +st*sm(0.035,0.06,d)*(1-sm(e.S-0.09,e.S+0.01,d))+L.T*(1+st*1.8)*gauss(d,e.S-0.1,0.045);
+    if(e.k==="E") return L.w*(0.8*gauss(d,0.02,0.02)-0.32*gauss(d,0.075,0.022))+0.2*gauss(d,e.S-0.1,0.05)
+      +st*sm(0.06,0.09,d)*(1-sm(e.S-0.09,e.S+0.01,d));
+    return L.w*(0.95*gauss(d,0.03,0.024)-0.5*gauss(d,0.095,0.028))-L.w*0.35*gauss(d,e.S-0.09,0.06);
+  }
+  function ecg(t){
+    const L=LEADS[lead()]; let v=0; const r=S.rh;
+    if(r.vf){v=0.42*Math.sin(2*Math.PI*4.7*t+0.9*Math.sin(0.8*t))*(0.55+0.45*Math.sin(0.41*t))
+             +0.22*Math.sin(2*Math.PI*6.3*t+1.1)+0.16*Math.sin(2*Math.PI*3.1*t+2.3)*Math.sin(0.67*t);}
+    else{
+      if(r.atr==="af") v+=0.045*(Math.sin(2*Math.PI*5.3*t)+0.7*Math.sin(2*Math.PI*6.7*t+1.3)+0.5*Math.sin(2*Math.PI*8.9*t+2.1))*(0.75+0.25*Math.sin(1.7*t));
+      else if(r.atr==="flutter"){let lf=null;for(let i=S.aEv.length-1;i>=0;i--)if(S.aEv[i].t<=t){lf=S.aEv[i];break;}
+        if(lf){const f=Math.min(1,(t-lf.t)/(60/r.frate));v+=0.07-0.16*(f<0.78?f/0.78:(1-f)/0.22);}}
+      else for(const e of S.aEv){const d=t-e.t;if(d>-0.02&&d<0.2)v+=L.P*gauss(d,0.045,0.02);}
+      for(const e of S.vEv){const d=t-e.t;if(d<-0.05||d>0.8)continue;v+=complexAt(d,e,L);}
+    }
+    const ds=t-S.shockT; if(ds>=0&&ds<0.5)v+=2.6*Math.exp(-ds/0.025)-0.7*Math.exp(-ds/0.14);
+    return v;
+  }
+  function setRhythm(k){S.rhKey=k;S.rh=RHY[k];S.pend=[];S.nextA=S.t+0.15;S.nextV=S.t+0.35;S.flCount=0;S.pvcCount=0;}
+  function shock(){S.shockT=S.t;S.rhKey="normal";S.rh=RHY.normal;S.pend=[];S.vEv=[];S.lastV=S.t;S.nextA=S.t+1.1;S.nextV=S.t+9;}
+  function setInfarct(i){S.inf=i;S.infP=0;}
+  return {S,step,phase,vitals,ecg,lead,setRhythm,shock,setInfarct,contractility,HP};
+}
+return {create,RHY,INF,LEADS,HP};
+})();
+if(typeof module!=="undefined") module.exports=SimCore;
+
+</script>
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s);
+const V3=(a,b,c)=>Array.isArray(a)?new THREE.Vector3(a[0],a[1],a[2]):new THREE.Vector3(a,b,c);
+const P=(x,y,z)=>new THREE.Vector3(x,y,z);
+const reduceMotion=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const PHASES=[
+  {name:"Sístole auricular",short:"Sístole auricular",desc:"Las aurículas se contraen y empujan el último 20 % de sangre hacia los ventrículos, que ya estaban casi llenos."},
+  {name:"Contracción isovolumétrica",short:"Contracción isovol.",desc:"Los ventrículos empiezan a contraerse con todas las válvulas cerradas; la presión sube rápido. Al cerrarse la mitral y la tricúspide se oye el primer ruido (S1)."},
+  {name:"Eyección ventricular",short:"Eyección",desc:"La presión ventricular supera a la arterial: se abren las válvulas aórtica y pulmonar y la sangre sale hacia el cuerpo y los pulmones."},
+  {name:"Relajación isovolumétrica",short:"Relajación isovol.",desc:"Los ventrículos se relajan y su presión cae. Se cierran la aórtica y la pulmonar: segundo ruido (S2)."},
+  {name:"Llenado ventricular",short:"Llenado (diástole)",desc:"Se abren la mitral y la tricúspide. La sangre acumulada en las aurículas cae de forma pasiva hacia los ventrículos."}
+];
+
+let bpm=72, playing=true, slow=false, flow=false, labelsOn=true, soundOn=false, autoRot=!reduceMotion, actx=null;
+const sim=SimCore.create(()=>bpm), S=sim.S;
+
+/* ================= Render ================= */
+const canvas=$("#gl");
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+renderer.outputEncoding=THREE.sRGBEncoding;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.08;
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(36,1,0.1,100);
+(function(){
+  const pm=new THREE.PMREMGenerator(renderer), es=new THREE.Scene();
+  es.add(new THREE.Mesh(new THREE.BoxGeometry(24,24,24),new THREE.MeshBasicMaterial({color:0x151a1c,side:THREE.BackSide})));
+  const box=(x,y,z,w,h,c,i)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({color:new THREE.Color(c).multiplyScalar(i),side:THREE.DoubleSide}));m.position.set(x,y,z);m.lookAt(0,0,0);es.add(m);};
+  box(0,7,6,9,4,0xffffff,3.2); box(-8,1,-3,3,9,0xbcd0ff,1.6); box(7,-2,5,4,3,0xffe0cc,1.3); box(0,-8,0,6,6,0x402020,1);
+  scene.environment=pm.fromScene(es,0.04).texture;
+})();
+scene.add(new THREE.HemisphereLight(0xfff2ee,0x2a1214,0.55));
+const key=new THREE.DirectionalLight(0xffffff,2.0); key.position.set(4,6,7); scene.add(key);
+const rim=new THREE.DirectionalLight(0x9fb8ff,1.3); rim.position.set(-6,2,-6); scene.add(rim);
+const fillL=new THREE.PointLight(0xffd6c4,0.7,30); fillL.position.set(3,-3,5); scene.add(fillL);
+
+function tissueTexture(){
+  const W=1024,H=512,c=document.createElement("canvas"); c.width=W; c.height=H;
+  const x=c.getContext("2d"); x.fillStyle="#d2d2d2"; x.fillRect(0,0,W,H);
+  const wrap=f=>{for(const dx of [-W,0,W])for(const dy of [-H,0,H])f(dx,dy);};
+  for(let i=0;i<4200;i++){
+    const px=Math.random()*W,py=Math.random()*H,l=20+Math.random()*90,a=-0.5+(Math.random()-.5)*0.45;
+    x.strokeStyle=Math.random()<.5?"rgba(255,255,255,0.07)":"rgba(40,40,40,0.07)"; x.lineWidth=0.6+Math.random()*2;
+    wrap((dx,dy)=>{x.beginPath();x.moveTo(px+dx,py+dy);x.lineTo(px+dx+Math.cos(a)*l,py+dy+Math.sin(a)*l);x.stroke();});
+  }
+  for(let i=0;i<220;i++){
+    const px=Math.random()*W,py=Math.random()*H,r=8+Math.random()*40,d=Math.random()<.5;
+    wrap((dx,dy)=>{const g=x.createRadialGradient(px+dx,py+dy,0,px+dx,py+dy,r);g.addColorStop(0,d?"rgba(90,90,90,0.12)":"rgba(255,255,255,0.12)");g.addColorStop(1,"rgba(128,128,128,0)");x.fillStyle=g;x.fillRect(px+dx-r,py+dy-r,2*r,2*r);});
+  }
+  const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(2,1);
+  t.anisotropy=renderer.capabilities.getMaxAnisotropy(); return t;
+}
+
+/* ---------- Deformación en GPU (ventrículos, aurículas, fibrilación, infarto) ---------- */
+const U={uC:{value:0},uPv:{value:0},uVF:{value:0},uAF:{value:0},uTime:{value:0},uRA:{value:1},uLA:{value:1},
+  uInf:{value:new THREE.Vector3()},uApex:{value:V3(HeartGeom.apex)},uAxis:{value:V3(HeartGeom.lvAxis)},
+  uRAc:{value:V3(HeartGeom.centers.RA)},uLAc:{value:V3(HeartGeom.centers.LA)}};
+const VDECL=`
+uniform float uC; uniform float uPv; uniform float uVF; uniform float uAF; uniform float uTime; uniform float uRA; uniform float uLA;
+uniform vec3 uInf; uniform vec3 uApex; uniform vec3 uAxis; uniform vec3 uRAc; uniform vec3 uLAc;
+attribute vec3 aReg; attribute vec3 aTerr;
+varying float vInf; varying vec3 vPosL;
+vec3 hRot(vec3 v, vec3 k, float a){ float c=cos(a); float s=sin(a); return v*c + cross(k,v)*s + k*dot(k,v)*(1.0-c); }
+float hQ(vec3 p, float t){ return sin(p.x*7.0+t*37.0)*sin(p.y*5.0-t*29.0)*sin(p.z*6.0+t*43.0)+0.5*sin(p.x*13.0-t*51.0+p.z*9.0)+0.4*sin(p.y*11.0+t*61.0-p.x*5.0); }
+`;
+const VDEF=`
+float hInf = dot(aTerr, uInf);
+vInf = hInf; vPosL = position;
+vec3 hRel = transformed - uApex;
+float hAl = dot(hRel, uAxis);
+vec3 hPe = hRel - uAxis*hAl;
+float hC = uC*(1.0-0.95*hInf);
+vec3 hV = uApex + uAxis*(hAl*(1.0-0.075*hC)) + hRot(hPe*(1.0-0.11*hC), uAxis, -0.12*hC*clamp(hAl/3.0,0.0,1.0));
+hV += objectNormal*(hInf*uPv*0.07 + hQ(position,uTime)*uVF*0.028);
+vec3 hRa = uRAc + (transformed-uRAc)*uRA + objectNormal*hQ(position*1.3,uTime*1.1)*uAF*0.02;
+vec3 hLa = uLAc + (transformed-uLAc)*uLA + objectNormal*hQ(position*1.3+2.0,uTime*1.1)*uAF*0.02;
+float hWo = max(0.0, 1.0-aReg.x-aReg.y-aReg.z);
+transformed = hV*aReg.x + hRa*aReg.y + hLa*aReg.z + transformed*hWo;
+`;
+const FDECL=`
+varying float vInf; varying vec3 vPosL;
+float hH(vec3 p){ return 0.0032*sin(dot(p,vec3(38.0,52.0,21.0))+2.0*sin(p.y*9.0+p.x*6.0))+0.0022*sin(dot(p,vec3(-29.0,41.0,33.0)))+0.004*sin(p.x*9.0+p.z*7.0)*sin(p.y*8.0+1.3); }
+vec3 hPerturb(vec3 pos, vec3 n, float h){ vec3 sx=dFdx(pos); vec3 sy=dFdy(pos); vec3 r1=cross(sy,n); vec3 r2=cross(n,sx); float det=dot(sx,r1); float bx=dFdx(h); float by=dFdy(h); vec3 g=sign(det)*(bx*r1+by*r2); return normalize(abs(det)*n - g); }
+`;
+const FCOL=`
+float hCore=smoothstep(0.3,0.75,vInf); float hBord=smoothstep(0.06,0.3,vInf)*(1.0-hCore);
+float hM=0.5+0.5*sin(vPosL.x*31.0+2.0*sin(vPosL.y*23.0))*sin(vPosL.z*27.0-vPosL.y*19.0);
+vec3 hIs=mix(vec3(0.13,0.085,0.12),vec3(0.34,0.25,0.24),hM);
+diffuseColor.rgb=mix(diffuseColor.rgb,hIs,hCore);
+diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(1.4,0.72,0.78),hBord*0.75);
+`;
+const FNRM=`
+normal = hPerturb(-vViewPosition, normal, hH(vPosL));
+`;
+function patch(mat,key,frag){
+  mat.onBeforeCompile=sh=>{
+    for(const k in U) sh.uniforms[k]=U[k];
+    sh.vertexShader=VDECL+sh.vertexShader.replace("#include <begin_vertex>","#include <begin_vertex>\n"+VDEF);
+    if(frag) sh.fragmentShader=FDECL+sh.fragmentShader
+      .replace("#include <color_fragment>","#include <color_fragment>\n"+FCOL)
+      .replace("#include <normal_fragment_maps>","#include <normal_fragment_maps>\n"+FNRM);
+  };
+  mat.customProgramCacheKey=()=>key;
+  return mat;
+}
+
+const solids=[];
+function phys(o,trackOpacity){const m=new THREE.MeshPhysicalMaterial(Object.assign({roughness:0.42,clearcoat:0.7,clearcoatRoughness:0.22,envMapIntensity:0.9},o));solids.push({m,x:trackOpacity||0.3});return m;}
+let tex=null;
+
+/* ================= Construcción del modelo ================= */
+const heart=new THREE.Group(); scene.add(heart);
+let heartMesh, corMeshes=[], clots=[], valves=[], labelDefs=[], infCentroids=[], points, pGeo, pos, paths, pPath, pU, pOff, NR, NP, rightPaths, leftPaths;
+let artMat, corMat, cvMat, occMat;
+
+function attrsFor(geo){
+  const p=geo.attributes.position, n=p.count, reg=new Float32Array(n*3), ter=new Float32Array(n*3);
+  for(let i=0;i<n;i++){const a=HeartGeom.vertexAttrs(p.getX(i),p.getY(i),p.getZ(i));
+    reg[i*3]=a.reg[0];reg[i*3+1]=a.reg[1];reg[i*3+2]=a.reg[2];ter[i*3]=a.terr[0];ter[i*3+1]=a.terr[1];ter[i*3+2]=a.terr[2];}
+  geo.setAttribute("aReg",new THREE.BufferAttribute(reg,3)); geo.setAttribute("aTerr",new THREE.BufferAttribute(ter,3));
+}
+
+function build(){
+  tex=tissueTexture();
+  const narrow=Math.min(window.innerWidth,window.innerHeight)<700;
+  /* miocardio y aurículas: una sola superficie fusionada */
+  const M=HeartGeom.buildMesh(narrow?0.04:0.034);
+  const g=new THREE.BufferGeometry();
+  g.setAttribute("position",new THREE.BufferAttribute(M.position,3));
+  g.setAttribute("normal",new THREE.BufferAttribute(M.normal,3));
+  g.setAttribute("color",new THREE.BufferAttribute(M.color,3));
+  g.setAttribute("aReg",new THREE.BufferAttribute(M.reg,3));
+  g.setAttribute("aTerr",new THREE.BufferAttribute(M.terr,3));
+  g.setIndex(new THREE.BufferAttribute(M.index,1));
+  const myoMat=patch(phys({color:0xffffff,vertexColors:true,roughness:0.46,clearcoat:0.75},0.2),"myo",true);
+  heartMesh=new THREE.Mesh(g,myoMat); heart.add(heartMesh);
+
+  /* centroides de cada territorio (para la etiqueta y la cámara) */
+  for(let k=0;k<3;k++){let sx=0,sy=0,sz=0,w=0;for(let i=0;i<M.terr.length/3;i++){const t=M.terr[i*3+k];if(t>0.6){sx+=M.position[i*3]*t;sy+=M.position[i*3+1]*t;sz+=M.position[i*3+2]*t;w+=t;}}
+    const c=[sx/w,sy/w,sz/w], out=HeartGeom.nrm(HeartGeom.sub(c,[0.1,-0.2,0])), hit=HeartGeom.march(HeartGeom.add(c,HeartGeom.mul(out,3)),HeartGeom.mul(out,-1))||c;
+    infCentroids.push({p:V3(hit),dir:V3(out)});}
+
+  /* coronarias */
+  corMat=patch(phys({color:0xa31e18,roughness:0.3,clearcoat:0.8}),"cor",false);
+  cvMat=patch(phys({color:0x3d1a4a,roughness:0.35,clearcoat:0.8}),"cor",false);
+  occMat=patch(phys({color:0x3a2c33,roughness:0.6,clearcoat:0.3}),"cor",false);
+  const clotMat=patch(new THREE.MeshPhysicalMaterial({color:0x1a0204,roughness:0.5,clearcoat:0.9,emissive:0x550000,emissiveIntensity:0.6}),"cor",false);
+  const tube=(pts,r,mat)=>{if(pts.length<2)return null;const c=new THREE.CatmullRomCurve3(pts,false,"centripetal");const geo=new THREE.TubeGeometry(c,Math.max(16,pts.length*5),r,8,false);attrsFor(geo);const m=new THREE.Mesh(geo,mat);heart.add(m);return m;};
+  HeartGeom.coronaryTree().forEach(seg=>{
+    const pts=seg.pts.map(V3), mat=seg.kind==="vein"?cvMat:corMat;
+    if(seg.split>0){
+      const c=new THREE.CatmullRomCurve3(pts,false,"centripetal");
+      const A=c.getSpacedPoints(40).filter((_,i)=>i<=Math.round(40*seg.split));
+      const B=c.getSpacedPoints(40).filter((_,i)=>i>=Math.round(40*seg.split));
+      const prox=tube(A,seg.r,mat), dist=tube(B,seg.r*0.92,mat);
+      corMeshes.push({mesh:dist,terr:seg.terr,base:mat});
+      const cg=new THREE.SphereGeometry(seg.r*1.75,16,12); const sp=c.getPointAt(seg.split); cg.translate(sp.x,sp.y,sp.z); attrsFor(cg);
+      const clot=new THREE.Mesh(cg,clotMat); clot.visible=false; heart.add(clot); clots[seg.terr]=clot;
+      if(seg.name==="LAD")labelDefs.push({t:"Descendente anterior",p:c.getPointAt(0.6)});
+      if(seg.name==="RCA")labelDefs.push({t:"Coronaria derecha",p:c.getPointAt(0.35)});
+    } else {
+      const m=tube(pts,seg.r,mat); if(m&&seg.kind==="art")corMeshes.push({mesh:m,terr:seg.terr,base:mat});
+    }
+  });
+
+  /* grandes vasos */
+  artMat=phys({color:0x8e1c16,roughness:0.35,bumpMap:tex,bumpScale:0.006,emissive:0x5a0000,emissiveIntensity:0});
+  const venMat=phys({color:0x243a86,roughness:0.38,bumpMap:tex,bumpScale:0.006});
+  const pvMat=phys({color:0x7c1a17,roughness:0.38,bumpMap:tex,bumpScale:0.006});
+  const capMat=phys({color:0xd9b3a8,roughness:0.6,side:THREE.DoubleSide,clearcoat:0.2});
+  const lumMat=new THREE.MeshBasicMaterial({color:0x2a0406,side:THREE.DoubleSide}); solids.push({m:lumMat,x:0,basic:true});
+  function vessel(pts,r,mat,capStart,capEnd){
+    const c=new THREE.CatmullRomCurve3(pts,false,"centripetal");
+    heart.add(new THREE.Mesh(new THREE.TubeGeometry(c,110,r,28,false),mat));
+    const cap=(u,flip)=>{const p=c.getPointAt(u),t=c.getTangentAt(u).clone();if(flip)t.negate();t.normalize();
+      const q=new THREE.Quaternion().setFromUnitVectors(P(0,0,1),t);
+      const ring=new THREE.Mesh(new THREE.RingGeometry(r*0.74,r,40),capMat);ring.position.copy(p);ring.quaternion.copy(q);heart.add(ring);
+      const lum=new THREE.Mesh(new THREE.CircleGeometry(r*0.74,40),lumMat);lum.position.copy(p).addScaledVector(t,-0.01);lum.quaternion.copy(q);heart.add(lum);};
+    if(capStart)cap(0,true); if(capEnd)cap(1,false);
+  }
+  const AORTA=[P(0.02,0.5,-0.05),P(-0.08,1.4,0.02),P(-0.12,2.2,-0.08),P(0.15,2.72,-0.4),P(0.62,2.62,-0.85),P(0.85,1.9,-1.2),P(0.88,0.6,-1.35),P(0.86,-0.85,-1.35)];
+  const BCT=[P(-0.05,2.5,-0.2),P(-0.25,3.1,-0.1),P(-0.45,3.5,0.0)];
+  const LCC=[P(0.25,2.7,-0.45),P(0.26,3.2,-0.43),P(0.28,3.6,-0.4)];
+  const LSA=[P(0.55,2.68,-0.72),P(0.75,3.1,-0.8),P(0.95,3.45,-0.85)];
+  vessel(AORTA,0.27,artMat,false,true); vessel(BCT,0.1,artMat,false,true); vessel(LCC,0.085,artMat,false,true); vessel(LSA,0.095,artMat,false,true);
+  const PVALVE=P(0.44,0.55,0.56);
+  const TRUNK=[P(0.5,1.2,0.55),P(0.4,1.8,0.25),P(0.3,2.05,-0.1)];
+  const LPA=[P(0.9,2.12,-0.42),P(1.6,2.0,-0.68)], RPA=[P(-0.4,1.96,-0.62),P(-1.35,1.9,-0.7)];
+  vessel([P(0.43,0.5,0.56),...TRUNK,...LPA],0.24,venMat,false,true);
+  vessel([P(0.32,2.03,-0.15),...RPA],0.17,venMat,false,true);
+  const SVC=[P(-1.2,2.4,-0.08),P(-1.2,2.0,-0.05),P(-1.18,1.4,0.05),P(-1.15,1.0,0.1)];
+  const IVC=[P(-1.04,-1.0,-0.25),P(-1.06,-0.5,-0.1),P(-1.07,-0.05,0.0),P(-1.08,0.35,0.06)];
+  vessel(SVC,0.2,venMat,true,false); vessel(IVC,0.225,venMat,true,false);
+  const PVEINS=[[P(-1.3,1.25,-1.05),P(-0.7,1.1,-0.88),P(-0.25,1.0,-0.72)],[P(-1.3,0.7,-1.05),P(-0.7,0.78,-0.88),P(-0.25,0.86,-0.72)],
+                [P(1.55,1.25,-1.0),P(1.05,1.12,-0.86),P(0.65,1.02,-0.74)],[P(1.55,0.72,-1.0),P(1.05,0.8,-0.86),P(0.65,0.88,-0.74)]];
+  PVEINS.forEach(v=>vessel(v,0.09,pvMat,true,false));
+
+  /* válvulas (visibles en modo flujo) */
+  const valveGroup=new THREE.Group(); valveGroup.visible=false; heart.add(valveGroup); valves.group=valveGroup;
+  const leafMat=new THREE.MeshStandardMaterial({color:0xbfe3f0,roughness:0.4,side:THREE.DoubleSide,transparent:true,opacity:0.92,emissive:0x16323a,depthWrite:true});
+  const annMat=new THREE.MeshStandardMaterial({color:0xf0dccb,roughness:0.5});
+  function makeValve(name,pos,axis,n,r,openAng,type){
+    const g=new THREE.Group(); g.position.copy(pos); g.quaternion.setFromUnitVectors(P(0,1,0),axis.clone().normalize()); valveGroup.add(g);
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(r,0.018,8,40),annMat); ring.rotation.x=Math.PI/2; g.add(ring);
+    const leaves=[];
+    for(let i=0;i<n;i++){
+      const a0=i*2*Math.PI/n+0.05, al=2*Math.PI/n-0.1, mid=a0+al/2;
+      const geo=new THREE.CircleGeometry(r*0.97,18,a0,al); geo.rotateX(-Math.PI/2);
+      const rimP=P(Math.cos(mid)*r,0,-Math.sin(mid)*r); geo.translate(-rimP.x,-rimP.y,-rimP.z);
+      const piv=new THREE.Group(); piv.position.copy(rimP); g.add(piv); piv.add(new THREE.Mesh(geo,leafMat));
+      leaves.push({piv,ax:new THREE.Vector3().crossVectors(rimP.clone().normalize().negate(),P(0,1,0)).normalize()});
+    }
+    valves.push({leaves,openAng,type,open:0});
+    labelDefs.push({t:"Válvula "+name,p:pos.clone(),xray:true});
+  }
+  const RAc=V3(HeartGeom.centers.RA), LAc=V3(HeartGeom.centers.LA);
+  makeValve("tricúspide",P(-0.72,0.18,0.2),P(0.93,-1.22,0.26),3,0.25,1.25,"av");
+  makeValve("mitral",P(0.22,0.4,-0.5),P(0.25,-1.38,0.62),2,0.25,1.25,"av");
+  makeValve("aórtica",P(0.02,0.52,-0.05),P(-0.1,0.9,0.07),3,0.21,1.35,"sl");
+  makeValve("pulmonar",P(0.44,0.56,0.56),P(0.05,0.65,-0.01),3,0.19,1.35,"sl");
+
+  /* partículas de sangre */
+  const RAp=P(-1.05,0.72,0.06), TRI=P(-0.72,0.18,0.2), RVp=P(-0.2,-0.5,0.3), RVOT=P(0.15,0.05,0.5);
+  const LAp=P(0.15,0.98,-0.8), MIT=P(0.22,0.4,-0.5), LVp=P(0.55,-0.55,-0.1), LVOT=P(0.18,0.0,-0.05), AOV=P(0.02,0.5,-0.05);
+  function buildPath(segs){
+    const pts=[],rad=[],ends=[],stages=[];
+    segs.forEach(s=>{s.pts.forEach(p=>{pts.push(p);rad.push(s.r);});ends.push(pts.length-1);stages.push(s.stage);});
+    const curve=new THREE.CatmullRomCurve3(pts,false,"centripetal");
+    const cum=[0]; for(let i=1;i<pts.length;i++)cum.push(cum[i-1]+pts[i].distanceTo(pts[i-1]));
+    const L=cum[cum.length-1], radCum=cum.map(c=>c/L), bounds=ends.map(i=>cum[i]/L); bounds[bounds.length-1]=1;
+    const N=600, lut=new Float32Array((N+1)*3);
+    for(let i=0;i<=N;i++){const p=curve.getPointAt(i/N);lut[i*3]=p.x;lut[i*3+1]=p.y;lut[i*3+2]=p.z;}
+    return {lut,N,bounds,stages,radCum,rad};
+  }
+  rightPaths=[]; leftPaths=[];
+  [SVC,IVC].forEach(v=>[LPA,RPA].forEach(br=>rightPaths.push(buildPath([
+    {pts:v,r:0.13,stage:"vein"},{pts:[RAp],r:0.38,stage:"atrium"},{pts:[TRI,RVp],r:0.3,stage:"av"},
+    {pts:[RVOT,PVALVE],r:0.2,stage:"vent"},{pts:[...TRUNK,...br],r:0.15,stage:"artery"}]))));
+  const dests=[AORTA.slice(1),[AORTA[1],AORTA[2],...BCT],[AORTA[1],AORTA[2],AORTA[3],...LCC],[AORTA[1],AORTA[2],AORTA[3],AORTA[4],...LSA]], dw=[0.7,0.1,0.1,0.1];
+  PVEINS.forEach(v=>dests.forEach((d,j)=>{const p=buildPath([
+    {pts:v,r:0.06,stage:"vein"},{pts:[LAp],r:0.38,stage:"atrium"},{pts:[MIT,LVp],r:0.3,stage:"av"},
+    {pts:[LVOT,AOV],r:0.19,stage:"vent"},{pts:d,r:j?0.06:0.18,stage:"artery"}]);p.w=dw[j];leftPaths.push(p);}));
+  paths=[...rightPaths,...leftPaths];
+  NR=700; NP=NR+800;
+  pPath=new Uint16Array(NP); pU=new Float32Array(NP); pOff=new Float32Array(NP*3); pos=new Float32Array(NP*3);
+  const col=new Float32Array(NP*3);
+  for(let k=0;k<NP;k++){
+    pPath[k]=k<NR?Math.floor(Math.random()*rightPaths.length):pickLeft(); pU[k]=Math.random();
+    let x,y,z; do{x=Math.random()*2-1;y=Math.random()*2-1;z=Math.random()*2-1;}while(x*x+y*y+z*z>1);
+    pOff[k*3]=x;pOff[k*3+1]=y;pOff[k*3+2]=z; const j=0.8+Math.random()*0.4;
+    if(k<NR){col[k*3]=0.32*j;col[k*3+1]=0.48*j;col[k*3+2]=1.0*j;}else{col[k*3]=1.0*j;col[k*3+1]=0.2*j;col[k*3+2]=0.16*j;}
+  }
+  const dot=(()=>{const c=document.createElement("canvas");c.width=c.height=64;const x=c.getContext("2d");const gr=x.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,"rgba(255,255,255,1)");gr.addColorStop(0.45,"rgba(255,255,255,0.85)");gr.addColorStop(1,"rgba(255,255,255,0)");x.fillStyle=gr;x.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);})();
+  pGeo=new THREE.BufferGeometry(); pGeo.setAttribute("position",new THREE.BufferAttribute(pos,3)); pGeo.setAttribute("color",new THREE.BufferAttribute(col,3));
+  points=new THREE.Points(pGeo,new THREE.PointsMaterial({size:0.075,map:dot,vertexColors:true,transparent:true,depthWrite:false}));
+  points.renderOrder=10; points.visible=false; heart.add(points);
+
+  /* etiquetas anatómicas */
+  const surf=(c,d)=>{const dir=HeartGeom.nrm(d);const h=HeartGeom.march(HeartGeom.add(c,HeartGeom.mul(dir,3)),HeartGeom.mul(dir,-1));return h?V3(h):V3(c);};
+  labelDefs.unshift(
+    {t:"Aorta",p:P(-0.12,2.25,0.2)},{t:"Tronco pulmonar",p:P(0.62,1.3,0.72)},
+    {t:"Vena cava superior",p:P(-1.36,2.3,0.05)},{t:"Vena cava inferior",p:P(-1.26,-1.2,-0.2)},
+    {t:"Aurícula derecha",p:surf(HeartGeom.centers.RA,[-1,0.1,0.3])},{t:"Aurícula izquierda",p:surf(HeartGeom.centers.LA,[0.1,0.35,-1])},
+    {t:"Ventrículo derecho",p:surf([-0.12,-0.5,0.32],[-0.2,-0.15,1])},{t:"Ventrículo izquierdo",p:surf(HeartGeom.LVc,[1,-0.3,0.15])},
+    {t:"Venas pulmonares",p:P(1.62,1.0,-1.0)});
+  labelDefs.push({t:"Zona infartada",p:P(0,0,0),inf:true});
+  const box=$("#labels");
+  labelDefs.forEach(L=>{L.el=document.createElement("div");L.el.className="lab"+(L.inf?" inf":"");L.el.innerHTML="<span>"+L.t+"</span>";box.appendChild(L.el);});
+}
+function pickLeft(){let r=Math.random()*4,acc=0;for(let i=0;i<leftPaths.length;i++){acc+=leftPaths[i].w;if(r<acc)return rightPaths.length+i;}return paths.length-1;}
+function radAt(p,u){const c=p.radCum;let i=1;while(i<c.length-1&&c[i]<u)i++;const a=c[i-1],b=c[i],t=b>a?Math.max(0,Math.min(1,(u-a)/(b-a))):0;return p.rad[i-1]+(p.rad[i]-p.rad[i-1])*t;}
+const rates={vein:0,atrium:0,av:0,vent:0,artery:0};
+function updateParticles(dt){
+  const SV=70;
+  rates.vein=rates.atrium=S.Qmean/SV; rates.av=S.Qin/SV; rates.vent=S.Qout/SV; rates.artery=(0.6*S.Qout+0.4*S.Pa/SimCore.HP.Rs)/SV;
+  for(let k=0;k<NP;k++){
+    const p=paths[pPath[k]]; let u=pU[k],i=0;
+    while(i<p.bounds.length-1&&u>=p.bounds[i])i++;
+    const st=i?p.bounds[i-1]:0;
+    u+=(p.bounds[i]-st)*rates[p.stages[i]]*dt;
+    if(u>=1){u-=1;pPath[k]=k>=NR?pickLeft():Math.floor(Math.random()*rightPaths.length);}
+    pU[k]=u;
+    const q=paths[pPath[k]],fi=u*q.N,i0=Math.min(q.N-1,Math.floor(fi)),t=fi-i0,L=q.lut,r=radAt(q,u)*0.85;
+    pos[k*3]=L[i0*3]+(L[i0*3+3]-L[i0*3])*t+pOff[k*3]*r;
+    pos[k*3+1]=L[i0*3+1]+(L[i0*3+4]-L[i0*3+1])*t+pOff[k*3+1]*r;
+    pos[k*3+2]=L[i0*3+2]+(L[i0*3+5]-L[i0*3+2])*t+pOff[k*3+2]*r;
+  }
+  pGeo.attributes.position.needsUpdate=true;
+}
+
+/* ================= Cámara orbital ================= */
+const orbit={theta:0.3,phi:1.45,r:11,tr:11,target:P(0,0.45,0),goal:null};
+const ptrs=new Map(); let pinch0=0;
+canvas.addEventListener("pointerdown",e=>{canvas.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});orbit.goal=null;canvas.classList.add("dragging");if(ptrs.size===2){const a=[...ptrs.values()];pinch0=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);}});
+canvas.addEventListener("pointermove",e=>{
+  if(!ptrs.has(e.pointerId))return; const pr=ptrs.get(e.pointerId);
+  if(ptrs.size===1){orbit.theta-=(e.clientX-pr.x)*0.008;orbit.phi=Math.max(0.3,Math.min(2.85,orbit.phi-(e.clientY-pr.y)*0.008));setAuto(false);}
+  ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(ptrs.size===2){const a=[...ptrs.values()],d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);if(pinch0)orbit.tr=Math.max(5,Math.min(22,orbit.tr*pinch0/d));pinch0=d;}
+});
+const endPtr=e=>{ptrs.delete(e.pointerId);pinch0=0;if(!ptrs.size)canvas.classList.remove("dragging");};
+canvas.addEventListener("pointerup",endPtr); canvas.addEventListener("pointercancel",endPtr);
+canvas.addEventListener("wheel",e=>{e.preventDefault();orbit.tr=Math.max(5,Math.min(22,orbit.tr*(1+e.deltaY*0.001)));},{passive:false});
+function focusOn(dir){
+  const d=dir.clone(); d.y*=0.6; d.normalize();
+  orbit.goal={theta:Math.atan2(d.x,d.z),phi:Math.max(0.55,Math.min(2.45,Math.acos(d.y)))}; setAuto(false);
+}
+const angD=(a,b)=>{let d=a-b;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;return d;};
+
+let W=1,H=1;
+const trace=$("#trace"), tx=trace.getContext("2d"); let ecgBuf=new Float32Array(1), paBuf=new Float32Array(1), sweepX=0, sweepAcc=0, dpr=1;
+function resize(){
+  W=canvas.clientWidth; H=canvas.clientHeight; renderer.setSize(W,H,false);
+  camera.aspect=W/H; camera.updateProjectionMatrix();
+  const narrow=W<780; orbit.tr=orbit.r=camera.aspect<0.8?16:(narrow?13:11.5);
+  orbit.target.y=narrow?-0.1:0.35;
+  dpr=Math.min(window.devicePixelRatio||1,2); const r=trace.getBoundingClientRect();
+  trace.width=Math.max(1,Math.round(r.width*dpr)); trace.height=Math.max(1,Math.round(r.height*dpr));
+  ecgBuf=new Float32Array(trace.width).fill(NaN); paBuf=new Float32Array(trace.width).fill(NaN); sweepX=0;
+}
+function drawTrace(){
+  const w=trace.width,h=trace.height,cs=getComputedStyle(document.documentElement);
+  tx.clearRect(0,0,w,h);
+  const eh=h*0.58, ph=h-eh, grid=cs.getPropertyValue("--grid"), ink=cs.getPropertyValue("--mute");
+  tx.strokeStyle=grid; tx.lineWidth=1; tx.beginPath();
+  for(let x=0;x<w;x+=20*dpr){tx.moveTo(x+.5,0);tx.lineTo(x+.5,eh);} for(let y=0;y<eh;y+=20*dpr){tx.moveTo(0,y+.5);tx.lineTo(w,y+.5);} tx.stroke();
+  tx.fillStyle=ink; tx.font=(10*dpr)+"px Public Sans, sans-serif"; tx.globalAlpha=0.7;
+  [40,80,120].forEach(v=>{const y=h-4*dpr-(v/160)*(ph-8*dpr);tx.fillRect(0,y,w,0.5*dpr);if(v!==80)tx.fillText(String(v),2*dpr,y-2*dpr);});
+  tx.globalAlpha=1;
+  const line=(buf,color,base,amp,clip)=>{tx.strokeStyle=color;tx.lineWidth=1.8*dpr;tx.lineJoin="round";tx.beginPath();let pen=false;
+    for(let x=0;x<w;x++){const v=buf[x];if(isNaN(v)){pen=false;continue;}let y=base-v*amp;y=Math.max(clip[0],Math.min(clip[1],y));if(!pen){tx.moveTo(x,y);pen=true;}else tx.lineTo(x,y);}tx.stroke();};
+  line(ecgBuf,cs.getPropertyValue("--ecg"),eh*0.62,eh*0.5,[1,eh-1]);
+  line(paBuf,cs.getPropertyValue("--pa"),h-4*dpr,(ph-8*dpr)/160,[eh+2,h-1]);
+}
+
+/* ================= Interfaz ================= */
+const rhChips=$("#rhChips"), infChips=$("#infChips");
+Object.keys(SimCore.RHY).forEach(k=>{const b=document.createElement("button");b.textContent=SimCore.RHY[k].label;b.dataset.k=k;b.setAttribute("aria-pressed",k==="normal");b.onclick=()=>setRhythm(k);rhChips.appendChild(b);});
+SimCore.INF.forEach((f,i)=>{const b=document.createElement("button");b.textContent=f.label;b.dataset.i=i;b.setAttribute("aria-pressed","false");b.onclick=()=>setInfarct(S.inf===i?-1:i);infChips.appendChild(b);});
+$("#cycleList").innerHTML=PHASES.map(p=>"<li><b>"+p.name+"</b><span>"+p.desc+"</span></li>").join("");
+document.querySelectorAll(".desc").forEach(d=>d.addEventListener("click",()=>d.classList.toggle("full")));
+const phasesEl=$("#phases"); const phaseSpans=PHASES.map(p=>{const s=document.createElement("span");s.textContent=p.short;s.title=p.name;phasesEl.appendChild(s);return s;});
+phasesEl.setAttribute("aria-hidden","true");
+function refreshSimUI(){
+  [...rhChips.children].forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===S.rhKey));
+  [...infChips.children].forEach(b=>b.setAttribute("aria-pressed",+b.dataset.i===S.inf));
+  const r=S.rh; $("#bShock").disabled=!r.shock;
+  const sinusAdj=S.rhKey==="normal";
+  $("#bpm").disabled=!sinusAdj; $("#rateNote").textContent=sinusAdj?"":"La frecuencia la impone el ritmo simulado.";
+  $("#rhTitle").textContent=r.title; $("#rhDesc").textContent=r.desc;
+  const f=S.inf>=0?SimCore.INF[S.inf]:null; $("#infBox").hidden=!f;
+  if(f){$("#infTitle").textContent=f.title;$("#infDesc").textContent=f.desc;}
+  $("#leadName").textContent="ECG "+SimCore.LEADS[sim.lead()].name+" · presión arterial";
+  curPhase=-99;
+}
+function setRhythm(k){sim.setRhythm(k);refreshSimUI();}
+let infVis=new THREE.Vector3();
+function setInfarct(i){
+  corMeshes.forEach(c=>{if(c.mesh)c.mesh.material=c.base;}); clots.forEach(c=>{if(c)c.visible=false;});
+  sim.setInfarct(i);
+  if(i>=0){corMeshes.forEach(c=>{if(c.mesh&&c.terr===i)c.mesh.material=occMat;}); if(clots[i])clots[i].visible=true; focusOn(infCentroids[i].dir);}
+  refreshSimUI();
+}
+$("#bShock").onclick=()=>{sim.shock();refreshSimUI();if(!reduceMotion){const f=$("#flash");f.style.transition="none";f.style.opacity="0.55";requestAnimationFrame(()=>{f.style.transition="opacity .6s";f.style.opacity="0";});}thump(40,0.35,1);};
+$("#bReset").onclick=()=>{sim.setRhythm("normal");setInfarct(-1);};
+$("#bpm").addEventListener("input",e=>{bpm=+e.target.value;$("#bpmVal").textContent=bpm;});
+function toggle(id,fn){const b=$(id);b.addEventListener("click",()=>{const on=b.getAttribute("aria-pressed")!=="true";b.setAttribute("aria-pressed",on);fn(on,b);});}
+toggle("#bPlay",(on,b)=>{playing=!on;b.textContent=on?"Reanudar":"Pausar";});
+toggle("#bSlow",on=>{slow=on;});
+toggle("#bFlow",on=>{flow=on;points.visible=on;valves.group.visible=on;
+  solids.forEach(s=>{if(s.basic){s.m.visible=!on;return;}s.m.transparent=on;s.m.opacity=on?s.x:1;s.m.depthWrite=!on;s.m.needsUpdate=true;});});
+toggle("#bLabels",on=>{labelsOn=on;});
+toggle("#bSound",on=>{soundOn=on;if(on&&!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(actx&&actx.state==="suspended")actx.resume();});
+function setAuto(on){autoRot=on;$("#bRotate").setAttribute("aria-pressed",on);}
+$("#bRotate").addEventListener("click",()=>setAuto(!autoRot)); setAuto(autoRot);
+$("#toggleRight").addEventListener("click",e=>{const r=$("#right"),o=!r.classList.contains("open");r.classList.toggle("open",o);e.target.setAttribute("aria-expanded",o);e.target.textContent=o?"Ocultar controles":"Controles y simulaciones";});
+function thump(freq,dur,gain){
+  if(!soundOn||!actx)return; const now=actx.currentTime;
+  const o=actx.createOscillator(),g=actx.createGain(),f=actx.createBiquadFilter();
+  f.type="lowpass";f.frequency.value=220;o.type="sine";
+  o.frequency.setValueAtTime(freq*1.7,now);o.frequency.exponentialRampToValueAtTime(freq,now+0.05);
+  g.gain.setValueAtTime(0.0001,now);g.gain.exponentialRampToValueAtTime(gain,now+0.012);g.gain.exponentialRampToValueAtTime(0.0001,now+dur);
+  o.connect(f);f.connect(g);g.connect(actx.destination);o.start(now);o.stop(now+dur+0.03);
+}
+
+let curPhase=-99, vitT=0, beatT=0;
+function showPhase(i){ curPhase=i; phaseSpans.forEach((s,j)=>s.classList.toggle("active",j===i)); }
+function setVital(id,txt,cls){const e=$(id);e.textContent=txt;e.className=cls||"";}
+
+/* ================= Bucle ================= */
+let last=performance.now(); const tmp=new THREE.Vector3(), camDir=new THREE.Vector3(), center=P(0,0.3,0), subPa=[];
+function frame(now){
+  const dt=Math.min(0.05,(now-last)/1000); last=now;
+  const dts=playing?dt*(slow?0.25:1):0;
+  const t0=S.t;
+  if(S.inf>=0&&S.infP<1) S.infP=Math.min(1,S.infP+dts/3);
+  const n=Math.ceil(dts/0.001), h=n?dts/n:0; subPa.length=0;
+  for(let i=0;i<n;i++){sim.step(h);subPa.push(S.Pa);}
+  if(S.s1){S.s1=false;thump(58,0.17,0.9);$("#beat").classList.add("pulse");beatT=0.14;}
+  if(S.s2){S.s2=false;thump(82,0.11,0.6);}
+  if(beatT>0){beatT-=dt;if(beatT<=0)$("#beat").classList.remove("pulse");}
+
+  /* uniformes de deformación */
+  U.uTime.value=S.t;
+  U.uC.value=Math.max(-0.25,Math.min(1.15,(132-S.V)/80));
+  U.uPv.value=Math.min(1.3,S.Pv/110);
+  U.uVF.value+=((S.rh.vf?1:0)-U.uVF.value)*Math.min(1,dt*3);
+  U.uAF.value+=((S.rh.atr==="af"?1:0)-U.uAF.value)*Math.min(1,dt*3);
+  const stretch=Math.max(-0.3,Math.min(1.2,(S.Va-60)/60)), as=1+0.07*stretch-0.12*S.a;
+  U.uRA.value=as; U.uLA.value=as;
+  const tgt=[0,0,0]; if(S.inf>=0)tgt[S.inf]=S.infP;
+  infVis.x+=(tgt[0]-infVis.x)*Math.min(1,dt*4); infVis.y+=(tgt[1]-infVis.y)*Math.min(1,dt*4); infVis.z+=(tgt[2]-infVis.z)*Math.min(1,dt*4);
+  U.uInf.value.copy(infVis);
+  artMat.emissiveIntensity=Math.min(0.45,S.Qout/700);
+  clots.forEach(c=>{if(c&&c.visible)c.material.emissiveIntensity=0.4+0.4*Math.sin(now/220);});
+
+  /* válvulas */
+  if(flow) valves.forEach(v=>{const target=v.type==="av"?(S.avOpen?1:0):(S.slOpen?1:0);v.open+=(target-v.open)*Math.min(1,dt*(slow?6:22));
+    v.leaves.forEach(l=>l.piv.quaternion.setFromAxisAngle(l.ax,v.open*v.openAng));});
+  if(flow&&dts>0) updateParticles(dts);
+
+  /* monitor */
+  if(dts>0){
+    const w=ecgBuf.length; sweepAcc+=110*dpr*dt; const nc=Math.floor(sweepAcc); sweepAcc-=nc;
+    for(let k=0;k<nc;k++){const f=(k+1)/nc, tt=t0+(S.t-t0)*f, x=Math.floor(sweepX)%w;
+      ecgBuf[x]=sim.ecg(tt); paBuf[x]=subPa.length?subPa[Math.min(subPa.length-1,Math.floor(f*subPa.length))]:S.Pa; sweepX=(sweepX+1)%w;}
+    for(let g=0;g<14*dpr;g++){const x=Math.floor(sweepX+g)%w;ecgBuf[x]=NaN;paBuf[x]=NaN;}
+  }
+  drawTrace();
+  const ph=sim.phase(); if(ph!==curPhase) showPhase(ph);
+  vitT-=dt; if(vitT<=0){vitT=0.3; const v=sim.vitals();
+    const hr=Math.round(v.hr); $("#bpmVal").textContent=S.rhKey==="normal"?bpm:(S.rh.vf?"—":(hr||"—"));
+    setVital("#vHR",S.rh.vf?"FV":(hr?String(hr):"—"),S.rh.vf?"bad":(hr>120||hr<45?"bad":(hr>100||hr<55?"mid":"")));
+    setVital("#vPA",Math.round(v.sys)+"/"+Math.round(v.dia),v.sys<70?"bad":(v.sys<95?"mid":""));
+    setVital("#vEF",S.rh.vf?"—":String(Math.round(v.ef*100)),v.ef<0.35?"bad":(v.ef<0.5?"mid":""));
+    setVital("#vCO",v.co.toFixed(1),v.co<2.5?"bad":(v.co<4?"mid":""));
+    const al=$("#alarm");
+    if(S.rh.vf||v.sys<50){al.textContent="Paro cardíaco: sin pulso";al.className="";}
+    else if(v.sys<90){al.textContent="Hipotensión";al.className="warn";}
+    else if(S.inf>=0){al.textContent="Isquemia en curso";al.className="warn";}
+    else al.textContent="";
+  }
+
+  /* cámara */
+  if(orbit.goal){const g=orbit.goal,k=Math.min(1,dt*2.5);orbit.theta+=angD(g.theta,orbit.theta)*k;orbit.phi+=(g.phi-orbit.phi)*k;
+    if(Math.abs(angD(g.theta,orbit.theta))<0.01&&Math.abs(g.phi-orbit.phi)<0.01)orbit.goal=null;}
+  else if(autoRot) orbit.theta+=dt*0.12;
+  orbit.r+=(orbit.tr-orbit.r)*0.12;
+  const T=orbit.target;
+  camera.position.set(T.x+orbit.r*Math.sin(orbit.phi)*Math.sin(orbit.theta),T.y+orbit.r*Math.cos(orbit.phi),T.z+orbit.r*Math.sin(orbit.phi)*Math.cos(orbit.theta));
+  camera.lookAt(T);
+  renderer.render(scene,camera);
+
+  /* etiquetas */
+  camDir.copy(camera.position).sub(center);
+  labelDefs.forEach(L=>{
+    let show=labelsOn&&(!L.xray||flow);
+    if(L.inf){show=S.inf>=0&&S.infP>0.3;if(show)L.p=infCentroids[S.inf].p;}
+    if(!show){L.el.style.opacity=0;return;}
+    tmp.copy(L.p); heart.localToWorld(tmp);
+    const front=L.xray||tmp.clone().sub(center).dot(camDir)>-0.3;
+    tmp.project(camera);
+    L.el.style.transform="translate("+((tmp.x*0.5+0.5)*W).toFixed(1)+"px,"+((-tmp.y*0.5+0.5)*H).toFixed(1)+"px)";
+    L.el.style.opacity=front?1:0.25;
+  });
+  requestAnimationFrame(frame);
+}
+
+window.addEventListener("resize",resize);
+setTimeout(()=>{
+  try{ build(); }catch(err){ $("#loading").textContent="No se pudo construir el modelo: "+err.message; throw err; }
+  $("#loading").remove(); resize(); refreshSimUI(); requestAnimationFrame(t=>{last=t;frame(t);});
+},40);
+})();
+</script>
+</body>
+</html>
+
+</body></html>
